@@ -6,7 +6,7 @@ A Node.js service that periodically syncs contacts from an Exchange Online share
 
 - **Automatic sync** — Fetches contacts from Microsoft Graph on a configurable interval
 - **Phone number lookup** — Matches against mobile, business, and home phone numbers
-- **Normalized matching** — Strips formatting so `+49 (152) 373-51074` matches `4915237351074`
+- **Normalized matching** — Strips formatting so `+49 (152) 555-51574` matches `4915255551574`
 - **URI prefix handling** — Automatically strips `sip:`, `tel:`, `sips:` prefixes from lookup input
 - **Configurable name format** — Display names as `First Last`, `Last, First`, or `Company (Name)`
 - **Company name support** — Shows company affiliation in parentheses when available
@@ -109,11 +109,11 @@ Look up a contact by phone number.
 ```json
 {
   "sessionId": "abc123",
-  "dstUri": "+4915237351074"
+  "dstUri": "+4915255551574"
 }
 ```
 
-The `dstUri` field accepts raw phone numbers or SIP/TEL URIs (`tel:+4915237351074`, `sip:+4915237351074`).
+The `dstUri` field accepts raw phone numbers or SIP/TEL URIs (`tel:+4915255551574`, `sip:+4915255551574`).
 
 **Response (match found):**
 
@@ -121,7 +121,7 @@ The `dstUri` field accepts raw phone numbers or SIP/TEL URIs (`tel:+491523735107
 {
   "sessionId": "abc123",
   "name": "John Smith (Contoso)",
-  "phone": "+4915237351074",
+  "phone": "+4915255551574",
   "phoneType": "mobile"
 }
 ```
