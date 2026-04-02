@@ -151,53 +151,42 @@ Returns service status and contact count.
 
 ## Docker
 
-### Quick Start with Docker Compose
+### Docker Compose
+
+Create a `docker-compose.yml` alongside your `.env` file:
+
+```yaml
+services:
+  app:
+    image: ghcr.io/akandor/shared-mailbox-contact-lookup:latest
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - contacts-data:/app
+      # Mount certificates for Azure cert auth or HTTPS:
+      # - ./certs:/app/certs:ro
+    restart: unless-stopped
+
+volumes:
+  contacts-data:
+```
+
+Then run:
 
 ```bash
-# Configure environment
-cp .env.example .env
-# Edit .env with your Azure AD credentials
-
-# Start the service
 docker compose up -d
-
-# View logs
-docker compose logs -f
-
-# Stop the service
-docker compose down
 ```
 
-### Using the Pre-built Image from GitHub
+### Build Locally
 
-The image is automatically built and published to GitHub Container Registry on every push to `main`.
-
-```bash
-docker pull ghcr.io/akandor/shared-mailbox-contact-lookup:latest
-```
-
-To use the pre-built image instead of building locally, edit `docker-compose.yml` and uncomment the `image` line (and remove `build: .`).
-
-### Build Manually
+If you prefer to build from source instead of using the published image:
 
 ```bash
 docker build -t shared-mailbox-contact-lookup .
 docker run -p 3000:3000 --env-file .env shared-mailbox-contact-lookup
 ```
-
-### Certificate Authentication
-
-If using Azure certificate auth or HTTPS, mount the `certs` directory:
-
-```bash
-docker run -p 3000:3000 --env-file .env -v ./certs:/app/certs:ro shared-mailbox-contact-lookup
-```
-
-Or uncomment the certs volume in `docker-compose.yml`.
-
-### Persistent Data
-
-The SQLite database (`contacts.db`) is stored in a named Docker volume (`contacts-data`) so data survives container restarts.
 
 ## Project Structure
 
