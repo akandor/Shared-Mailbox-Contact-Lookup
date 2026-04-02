@@ -164,7 +164,7 @@ services:
     env_file:
       - .env
     volumes:
-      - contacts-data:/app
+      - contacts-data:/app/data
       # Mount certificates for Azure cert auth or HTTPS:
       # - ./certs:/app/certs:ro
     restart: unless-stopped
