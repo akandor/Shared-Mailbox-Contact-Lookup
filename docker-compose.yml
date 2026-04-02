@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    # Or use the pre-built image from GitHub Container Registry:
+    # image: ghcr.io/akandor/shared-mailbox-contact-lookup:latest
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    env_file:
+      - .env
+    volumes:
+      - contacts-data:/app
+      # Uncomment to mount certificates for Azure cert auth or HTTPS:
+      # - ./certs:/app/certs:ro
+    restart: unless-stopped
+
+volumes:
+  contacts-data:

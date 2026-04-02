@@ -149,6 +149,56 @@ Returns service status and contact count.
 }
 ```
 
+## Docker
+
+### Quick Start with Docker Compose
+
+```bash
+# Configure environment
+cp .env.example .env
+# Edit .env with your Azure AD credentials
+
+# Start the service
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop the service
+docker compose down
+```
+
+### Using the Pre-built Image from GitHub
+
+The image is automatically built and published to GitHub Container Registry on every push to `main`.
+
+```bash
+docker pull ghcr.io/akandor/shared-mailbox-contact-lookup:latest
+```
+
+To use the pre-built image instead of building locally, edit `docker-compose.yml` and uncomment the `image` line (and remove `build: .`).
+
+### Build Manually
+
+```bash
+docker build -t shared-mailbox-contact-lookup .
+docker run -p 3000:3000 --env-file .env shared-mailbox-contact-lookup
+```
+
+### Certificate Authentication
+
+If using Azure certificate auth or HTTPS, mount the `certs` directory:
+
+```bash
+docker run -p 3000:3000 --env-file .env -v ./certs:/app/certs:ro shared-mailbox-contact-lookup
+```
+
+Or uncomment the certs volume in `docker-compose.yml`.
+
+### Persistent Data
+
+The SQLite database (`contacts.db`) is stored in a named Docker volume (`contacts-data`) so data survives container restarts.
+
 ## Project Structure
 
 ```
