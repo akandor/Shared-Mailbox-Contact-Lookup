@@ -76,7 +76,8 @@ Place your private key in the `certs/` directory (gitignored by default).
 | Variable | Default | Description |
 |---|---|---|
 | `TRUSTED_HOSTS` | *(empty)* | Comma-separated IP allowlist (e.g. `127.0.0.1,10.0.0.5`) |
-| `USERNAME` | *(empty)* | Basic auth username (auth disabled if empty) |
+| `AUTH` | `false` | Enable Basic Authentication |
+| `USERNAME` | *(empty)* | Basic auth username |
 | `PASSWORD` | *(empty)* | Basic auth password |
 | `HTTPS` | `false` | Enable HTTPS server |
 | `HTTPS_KEY_PATH` | `./certs/server.key` | TLS private key path |
@@ -84,7 +85,7 @@ Place your private key in the `certs/` directory (gitignored by default).
 | `HTTPS_CA_PATH` | *(empty)* | CA certificate for mutual TLS (client cert verification) |
 | `HTTPS_ONLY` | `false` | Redirect all HTTP requests to HTTPS |
 
-> When `TRUSTED_HOSTS` is set, only listed IPs can connect. Basic auth is enforced independently — trusted hosts still need to authenticate.
+> When `TRUSTED_HOSTS` is set, only listed IPs can connect. When `AUTH=true`, all requests must authenticate with Basic credentials — trusted hosts still need to authenticate.
 
 ### Name Format
 

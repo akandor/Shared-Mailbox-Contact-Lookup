@@ -24,6 +24,7 @@ const trustedHosts = (process.env.TRUSTED_HOSTS || "")
   .map((h) => h.trim())
   .filter(Boolean);
 
+const authEnabled = process.env.AUTH === "true";
 const authUser = process.env.USERNAME || null;
 const authPass = process.env.PASSWORD || null;
 const useHttps = process.env.HTTPS === "true";
@@ -66,8 +67,8 @@ app.use((req, res, next) => {
     }
   }
 
-  // Basic auth required if credentials are configured
-  if (authUser && authPass) {
+  // Basic auth required if AUTH=true and credentials are configured
+  if (authEnabled && authUser && authPass) {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Basic ")) {
       res.set("WWW-Authenticate", 'Basic realm="Contact Lookup"');
