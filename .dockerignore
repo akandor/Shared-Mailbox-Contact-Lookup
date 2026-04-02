@@ -1,0 +1,10 @@
+node_modules
+contacts.db
+contacts.db-shm
+contacts.db-wal
+.env
+certs
+notes.txt
+.git
+.gitignore
+README.md
