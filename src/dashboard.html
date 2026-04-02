@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Lookup Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232734;
+    --border: #2e3345;
+    --text: #e4e6ef;
+    --text-dim: #8b8fa3;
+    --accent: #6c5ce7;
+    --accent-hover: #7c6ef7;
+    --green: #00d68f;
+    --red: #ff6b6b;
+    --orange: #ffa94d;
+    --radius: 12px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Login */
+  .login-container {
+    width: 100%;
+    max-width: 380px;
+    padding: 20px;
+  }
+
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px 32px;
+  }
+
+  .login-card h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
+  .login-card p {
+    color: var(--text-dim);
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus {
+    border-color: var(--accent);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    width: 100%;
+  }
+
+  .btn-primary:hover { background: var(--accent-hover); }
+
+  .btn-green {
+    background: rgba(0, 214, 143, 0.15);
+    color: var(--green);
+    border: 1px solid rgba(0, 214, 143, 0.25);
+  }
+
+  .btn-green:hover { background: rgba(0, 214, 143, 0.25); }
+
+  .btn-red {
+    background: rgba(255, 107, 107, 0.1);
+    color: var(--red);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+  }
+
+  .btn-red:hover { background: rgba(255, 107, 107, 0.2); }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .login-error {
+    color: var(--red);
+    font-size: 13px;
+    text-align: center;
+    margin-top: 12px;
+    display: none;
+  }
+
+  /* Dashboard */
+  .dashboard {
+    display: none;
+    width: 100%;
+    max-width: 720px;
+    padding: 20px;
+  }
+
+  .dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  .btn-logout {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .btn-logout:hover { color: var(--text); border-color: var(--text-dim); }
+
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 560px) {
+    .cards { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+
+  .card-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  .card-value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .card-sub {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    position: relative;
+    top: -1px;
+  }
+
+  .status-dot.online { background: var(--green); box-shadow: 0 0 8px rgba(0, 214, 143, 0.4); }
+  .status-dot.error { background: var(--red); box-shadow: 0 0 8px rgba(255, 107, 107, 0.4); }
+  .status-dot.syncing { background: var(--orange); animation: pulse 1s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  .detail-card {
+    grid-column: 1 / -1;
+  }
+
+  .detail-rows {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+  }
+
+  .detail-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .detail-label {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .detail-value {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .actions .btn { flex: 1; padding: 12px; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 14px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 100;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    max-width: 380px;
+    width: 90%;
+  }
+
+  .modal h2 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .modal p {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .modal-actions .btn { flex: none; padding: 8px 18px; }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login-container" id="loginView">
+  <div class="login-card">
+    <h1>Contact Lookup</h1>
+    <p>Sign in to access the dashboard</p>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" autocomplete="username" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Sign In</button>
+      <div class="login-error" id="loginError">Invalid credentials</div>
+    </form>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div class="dashboard" id="dashboardView">
+  <div class="dashboard-header">
+    <h1>Dashboard</h1>
+    <button class="btn btn-logout" onclick="logout()">Sign Out</button>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-label">Server Status</div>
+      <div class="card-value" id="statusValue">
+        <span class="status-dot online"></span>Online
+      </div>
+      <div class="card-sub" id="uptimeValue">Uptime: --</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Contacts</div>
+      <div class="card-value" id="contactCount">--</div>
+      <div class="card-sub" id="mailboxValue">--</div>
+    </div>
+
+    <div class="card detail-card">
+      <div class="card-label">Sync Details</div>
+      <div class="detail-rows">
+        <div class="detail-row">
+          <span class="detail-label">Last Sync</span>
+          <span class="detail-value" id="lastSync">--</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Duration</span>
+          <span class="detail-value" id="syncDuration">--</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Interval</span>
+          <span class="detail-value" id="syncInterval">--</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Status</span>
+          <span class="detail-value" id="syncStatus">--</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-green" id="syncBtn" onclick="triggerSync()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+      Sync Now
+    </button>
+    <button class="btn btn-red" onclick="showRestartModal()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64A9 9 0 1 1 5.64 5.64"/><polyline points="18.36 2 18.36 6.64 13.72 6.64"/></svg>
+      Restart Server
+    </button>
+  </div>
+</div>
+
+<!-- Restart Modal -->
+<div class="modal-overlay" id="restartModal">
+  <div class="modal">
+    <h2>Restart Server?</h2>
+    <p>The server process will exit and should be restarted by your process manager or Docker.</p>
+    <div class="modal-actions">
+      <button class="btn btn-logout" onclick="hideRestartModal()">Cancel</button>
+      <button class="btn btn-red" onclick="restartServer()">Restart</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  function getAuth() {
+    return sessionStorage.getItem('auth');
+  }
+
+  function api(path, method = 'GET') {
+    return fetch(path, {
+      method,
+      headers: { 'Authorization': 'Basic ' + getAuth() }
+    });
+  }
+
+  // Login
+  $('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const user = $('username').value;
+    const pass = $('password').value;
+    const token = btoa(user + ':' + pass);
+
+    const res = await fetch('/api/status', {
+      headers: { 'Authorization': 'Basic ' + token }
+    });
+
+    if (res.ok) {
+      sessionStorage.setItem('auth', token);
+      showDashboard();
+    } else {
+      $('loginError').style.display = 'block';
+    }
+  });
+
+  function logout() {
+    sessionStorage.removeItem('auth');
+    $('loginView').style.display = '';
+    $('dashboardView').style.display = 'none';
+  }
+
+  function showDashboard() {
+    $('loginView').style.display = 'none';
+    $('dashboardView').style.display = 'block';
+    refreshStatus();
+    window._statusInterval = setInterval(refreshStatus, 10000);
+  }
+
+  // Status
+  async function refreshStatus() {
+    try {
+      const res = await api('/api/status');
+      if (res.status === 401) { logout(); return; }
+      const data = await res.json();
+
+      $('contactCount').textContent = data.contactCount.toLocaleString();
+      $('mailboxValue').textContent = data.mailbox;
+      $('syncInterval').textContent = data.syncInterval + ' min';
+      $('syncDuration').textContent = data.duration ? data.duration + 's' : '--';
+      $('uptimeValue').textContent = 'Uptime: ' + formatUptime(data.uptime);
+
+      if (data.lastSync) {
+        const d = new Date(data.lastSync);
+        $('lastSync').textContent = d.toLocaleString();
+      } else {
+        $('lastSync').textContent = 'Never';
+      }
+
+      if (data.syncInProgress) {
+        $('syncStatus').innerHTML = '<span class="status-dot syncing"></span>Syncing';
+      } else if (data.lastError) {
+        $('syncStatus').innerHTML = '<span class="status-dot error"></span>' + data.lastError;
+      } else {
+        $('syncStatus').innerHTML = '<span class="status-dot online"></span>Idle';
+      }
+    } catch {
+      $('statusValue').innerHTML = '<span class="status-dot error"></span>Offline';
+    }
+  }
+
+  function formatUptime(seconds) {
+    const d = Math.floor(seconds / 86400);
+    const h = Math.floor((seconds % 86400) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (d > 0) return d + 'd ' + h + 'h ' + m + 'm';
+    if (h > 0) return h + 'h ' + m + 'm';
+    return m + 'm ' + (seconds % 60) + 's';
+  }
+
+  // Sync
+  async function triggerSync() {
+    const btn = $('syncBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Syncing...';
+    try {
+      const res = await api('/api/sync', 'POST');
+      const data = await res.json();
+      if (res.ok) {
+        showToast('Sync complete — ' + data.contactCount + ' contacts in ' + data.duration + 's');
+      } else {
+        showToast('Sync failed: ' + data.error);
+      }
+    } catch {
+      showToast('Sync request failed');
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg> Sync Now';
+    refreshStatus();
+  }
+
+  // Restart
+  function showRestartModal() { $('restartModal').classList.add('show'); }
+  function hideRestartModal() { $('restartModal').classList.remove('show'); }
+
+  async function restartServer() {
+    hideRestartModal();
+    try {
+      await api('/api/restart', 'POST');
+      showToast('Server is restarting...');
+      clearInterval(window._statusInterval);
+    } catch {}
+  }
+
+  // Toast
+  function showToast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // Auto-login if session exists
+  if (getAuth()) showDashboard();
+</script>
+</body>
+</html>

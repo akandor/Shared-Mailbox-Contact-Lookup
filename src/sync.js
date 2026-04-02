@@ -18,21 +18,27 @@ export async function syncContacts(db, config) {
 
   const elapsed = ((Date.now() - start) / 1000).toFixed(1);
   console.log(`[sync] Sync complete in ${elapsed}s — ${contacts.length} contacts stored`);
+
+  return { contactCount: contacts.length, duration: parseFloat(elapsed) };
 }
 
-export function startPeriodicSync(db, config, intervalMinutes) {
+export function startPeriodicSync(db, config, intervalMinutes, onSyncComplete) {
+  const runSync = async () => {
+    try {
+      const result = await syncContacts(db, config);
+      if (onSyncComplete) onSyncComplete(null, result);
+    } catch (err) {
+      console.error("[sync] Sync failed:", err.message);
+      if (onSyncComplete) onSyncComplete(err, null);
+    }
+  };
+
   // Run initial sync
-  syncContacts(db, config).catch((err) =>
-    console.error("[sync] Initial sync failed:", err.message),
-  );
+  runSync();
 
   // Schedule recurring sync
   const ms = intervalMinutes * 60 * 1000;
-  const timer = setInterval(() => {
-    syncContacts(db, config).catch((err) =>
-      console.error("[sync] Sync failed:", err.message),
-    );
-  }, ms);
+  const timer = setInterval(runSync, ms);
 
   console.log(`[sync] Scheduled sync every ${intervalMinutes} minute(s)`);
   return timer;

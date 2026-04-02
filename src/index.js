@@ -2,9 +2,13 @@ import "dotenv/config";
 import express from "express";
 import https from "https";
 import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { initDb } from "./db.js";
 import { findByPhone } from "./db.js";
-import { startPeriodicSync } from "./sync.js";
+import { startPeriodicSync, syncContacts } from "./sync.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const config = {
   tenantId: process.env.TENANT_ID,
@@ -44,6 +48,17 @@ const db = initDb();
 const app = express();
 app.use(express.json());
 
+// --- Sync state ---
+const syncState = {
+  lastSync: null,
+  contactCount: 0,
+  duration: 0,
+  syncInProgress: false,
+  lastError: null,
+};
+
+const serverStartTime = Date.now();
+
 // --- Middleware: HTTPS redirect ---
 if (httpsOnly) {
   app.use((req, res, next) => {
@@ -53,6 +68,11 @@ if (httpsOnly) {
     return res.redirect(301, `https://${req.headers.host}${req.url}`);
   });
 }
+
+// --- Dashboard (served before auth middleware) ---
+app.get("/dashboard", (_req, res) => {
+  res.sendFile(path.join(__dirname, "dashboard.html"));
+});
 
 // --- Middleware: Trusted hosts + Basic auth ---
 app.use((req, res, next) => {
@@ -107,8 +127,58 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok", contacts: count.count });
 });
 
+// --- Dashboard API routes ---
+app.get("/api/status", (_req, res) => {
+  const count = db.prepare("SELECT COUNT(*) as count FROM contacts").get();
+  res.json({
+    uptime: Math.floor((Date.now() - serverStartTime) / 1000),
+    port,
+    syncInterval: intervalMinutes,
+    mailbox: config.mailbox,
+    ...syncState,
+    contactCount: count.count,
+  });
+});
+
+app.post("/api/sync", async (_req, res) => {
+  if (syncState.syncInProgress) {
+    return res.status(409).json({ error: "Sync already in progress" });
+  }
+
+  syncState.syncInProgress = true;
+  try {
+    const result = await syncContacts(db, config);
+    syncState.lastSync = new Date().toISOString();
+    syncState.contactCount = result.contactCount;
+    syncState.duration = result.duration;
+    syncState.lastError = null;
+    syncState.syncInProgress = false;
+    res.json({ success: true, ...result });
+  } catch (err) {
+    syncState.lastError = err.message;
+    syncState.syncInProgress = false;
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/restart", (_req, res) => {
+  res.json({ success: true, message: "Server restarting..." });
+  setTimeout(() => process.exit(0), 500);
+});
+
 // --- Start sync ---
-startPeriodicSync(db, config, intervalMinutes);
+startPeriodicSync(db, config, intervalMinutes, (err, result) => {
+  if (err) {
+    syncState.lastError = err.message;
+    syncState.syncInProgress = false;
+  } else {
+    syncState.lastSync = new Date().toISOString();
+    syncState.contactCount = result.contactCount;
+    syncState.duration = result.duration;
+    syncState.lastError = null;
+    syncState.syncInProgress = false;
+  }
+});
 
 // --- Start server ---
 if (useHttps) {
