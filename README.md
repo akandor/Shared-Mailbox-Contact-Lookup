@@ -2,6 +2,8 @@
 
 A Node.js service that periodically syncs contacts from an Exchange Online shared mailbox via Microsoft Graph API and stores them in a local SQLite database. Provides a fast phone number lookup endpoint for caller identification.
 
+Vibe coded with Claude.
+
 ## Features
 
 - **Automatic sync** — Fetches contacts from Microsoft Graph on a configurable interval
